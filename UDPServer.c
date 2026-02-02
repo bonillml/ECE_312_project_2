@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#define PORT 9876
+#define PORT 2526
 #define BUFSIZE 1024
 
 int main() {
