@@ -1,34 +1,8 @@
 /************* UDP CLIENT CODE *******************/
 
+
+
 #include "UDPClient.h"
-
-struct RHP {
-    uint8_t version;    // Version number of RHP protocol.
-    uint16_t srcPort;   // RHP port of source.
-    uint16_t destPort;  // Destination RHP port.
-
-    // Keep length values in range 0 - 4095
-    // Keep type values in range 0 - 15
-    // 0 = Control message (ASCII Strings)
-    //      (Use 0x1874 for the dstPort)
-    // 4 = RHMP message
-    //      (Use 0xECE for the dstPort)
-    // The dstPort will be automatically assigned given the type.
-    //
-    // The length and type are combined to form two octets.
-    uint16_t length_and_type;    // Length of payload (bytes) & RHP message type (payload protocol)
-
-    // If zero, this RHP packet won't have a buffer. A non-zero
-    // value means there is a buffer.
-    uint8_t buffer;     // Optional 8-bit buffer of zeros to ensure even number of octects in packet.
-
-    // Has a variable size.
-    // May need to change it from a uint16_t
-    uint64_t payload;   // RHP SDU (depedent on type)
-
-    uint16_t checksum;  // 16-bit internet checksum.
-
-};
 
 int main() {
     int clientSocket, nBytes;
@@ -69,7 +43,7 @@ int main() {
     printf("> Enter the message you'd like to send: \n> ");
     memset(msg_out_buffer, 0, MESSAGE_SIZE);
     fgets(msg_out_buffer, sizeof(msg_out_buffer) - 1, stdin);
-    msg_out_buffer[sizeof(msg_out_buffer) - 1] = 0;
+    msg_out_buffer[strcspn(msg_out_buffer, "\r\n")] = 0;
     printf("> Sending %s\n", msg_out_buffer);
 
     // Create and populate the RHP packet struct.
@@ -80,8 +54,7 @@ int main() {
     }
 
     /* send a message to the server */
-    if (sendto(clientSocket, msg_out_buffer, strlen(msg_out_buffer), 0,
-            (struct sockaddr *) &serverAddr, sizeof (serverAddr)) < 0) {
+    if (sendto(clientSocket, msg_out_buffer, strlen(msg_out_buffer), 0, (struct sockaddr *) &serverAddr, sizeof (serverAddr)) < 0) {
         perror("sendto failed");
         return 0;
     }
@@ -97,7 +70,9 @@ int main() {
 
 struct RHP* createRHPPacket(char msg[], uint8_t type) {
 
-    struct RHP *packet;
+    struct RHP *packet = malloc(sizeof(struct RHP));
+
+    uint8_t totalOctetCount = DEFAULT_NUM_OCTETS;
 
     // Assign the RHP version.
     packet->version = RHP_VERSION;
@@ -106,8 +81,11 @@ struct RHP* createRHPPacket(char msg[], uint8_t type) {
     packet->srcPort = SOURCE_PORT;
 
     // Check the type and length validity
-    uint16_t length = sizeof(msg) / sizeof(char);
+    uint16_t length = (sizeof(char) * (strlen(msg) + 1));
     if ((!type || type == 4) && length < 4096) {
+
+        // Valid length, so increment octet count.
+        totalOctetCount += length;
 
         // Populate the length and type octets
         packet->length_and_type = ((0x3 | type) << 3) | (0x0FFF & length);
@@ -117,9 +95,31 @@ struct RHP* createRHPPacket(char msg[], uint8_t type) {
         else packet->destPort = 0x1874;
     }
     else
-        return 0;
+        return NULL;
 
+    // If there an odd number of octets, add buffer.
+    if ((totalOctetCount % 2)) {
+        packet->buffer = 1;
+        totalOctetCount++;
+    }
+
+    // Set total octet count
+    packet->totalOctetCount = totalOctetCount;
+    printf("> Total packet octet: %d\n", totalOctetCount);
     
+    // Compute the packet's checksum 
+    computeChecksum(packet);
 
     return packet;
+}
+
+void computeChecksum(struct RHP* packet) {
+
+    uint32_t sum = 0x0000;
+    
+    // Add the version and lower half of source port
+    sum += ((0x0F & packet->srcPort) << 8) | (0x0F & (uint16_t)packet->version);
+
+    // Add the high half of source port and the lower half of destination port
+    sum += ((0xF0 & packet->srcPort)) | (0x0F & (packet->destPort));
 }
