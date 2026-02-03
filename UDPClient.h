@@ -5,6 +5,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
+#include <netdb.h>
+#include <stdint.h>
 
 // DON'T TOUCH THESE SETTINGS
 #define SERVER "137.112.38.47"
@@ -27,13 +29,14 @@ char msg_in_buffer[MESSAGE_SIZE];
 #define OCTET_COUNT(bits) ((bits / 8) + 1)
 
 // Method signatures
-struct RHP* createRHPPacket(char msg[], uint8_t type);
-void computeChecksum(struct RHP* packet);
+struct RHP *createRHPPacket(char msg[], uint8_t type);
+void computeChecksum(struct RHP *packet);
 
-struct RHP {
-    uint8_t version;            // Version number of RHP protocol.
-    uint16_t srcPort;           // RHP port of source.
-    uint16_t destPort;          // Destination RHP port.
+struct RHP
+{
+    uint8_t version;   // Version number of RHP protocol.
+    uint16_t srcPort;  // RHP port of source.
+    uint16_t destPort; // Destination RHP port.
 
     // Keep length values in range 0 - 4095
     // Keep type values in range 0 - 15
@@ -44,17 +47,17 @@ struct RHP {
     // The dstPort will be automatically assigned given the type.
     //
     // The length and type are combined to form two octets.
-    uint16_t length_and_type;    // Length of payload (bytes) & RHP message type (payload protocol)
+    uint16_t length_and_type; // Length of payload (bytes) & RHP message type (payload protocol)
 
-    // 0 = RHP packet won't have a buffer. 
+    // 0 = RHP packet won't have a buffer.
     // 1 = RHP packet will have a buffer.
-    uint8_t buffer;             // Optional 8-bit buffer of zeros to ensure even number of octects in packet.
+    uint8_t buffer; // Optional 8-bit buffer of zeros to ensure even number of octects in packet.
 
     // Has a variable size.
     // Can max at 4096 bytes
-    char payload[4096];         // RHP SDU (depedent on type)
+    char payload[4096]; // RHP SDU (depedent on type)
 
-    uint16_t checksum;          // 16-bit internet checksum.
+    uint16_t checksum; // 16-bit internet checksum.
 
     // Tracks the total number of octets in this packet.
     uint16_t totalOctetCount;

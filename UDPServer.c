@@ -11,7 +11,8 @@
 #define PORT 2526
 #define BUFSIZE 1024
 
-int main() {
+int main()
+{
     int udpSocket, nBytes;
     char buffer[BUFSIZE];
     struct sockaddr_in serverAddr, clientAddr;
@@ -19,7 +20,8 @@ int main() {
     int i;
 
     /* Create UDP socket */
-    if ((udpSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((udpSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
         perror("cannot create socket\n");
         return 0;
     }
@@ -33,16 +35,17 @@ int main() {
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
 
     /* Bind socket with address struct */
-    if (bind(udpSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
+    if (bind(udpSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
+    {
         perror("bind failed");
         return 0;
     }
 
     printf("waiting on port %d\n", PORT);
-    addr_size = sizeof (clientAddr);
+    addr_size = sizeof(clientAddr);
     /* Try to receive any incoming UDP datagram. Address and port of
       requesting client will be stored on clientAddr variable */
-    nBytes = recvfrom(udpSocket, buffer, BUFSIZE, 0, (struct sockaddr *) &clientAddr, &addr_size);
+    nBytes = recvfrom(udpSocket, buffer, BUFSIZE, 0, (struct sockaddr *)&clientAddr, &addr_size);
     printf("received %d bytes\n", nBytes);
 
     /* Convert message received to uppercase */
@@ -50,7 +53,8 @@ int main() {
         buffer[i] = toupper(buffer[i]);
 
     /* Send uppercase message back to client, using clientAddr as the address */
-    if (sendto(udpSocket, buffer, nBytes, 0, (struct sockaddr *) &clientAddr, addr_size) < 0) {
+    if (sendto(udpSocket, buffer, nBytes, 0, (struct sockaddr *)&clientAddr, addr_size) < 0)
+    {
         perror("sendto failed");
         return 0;
     }
