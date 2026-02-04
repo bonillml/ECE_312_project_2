@@ -1,7 +1,6 @@
 #pragma once
 // UDPClient.h
 
-#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -13,6 +12,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include "SocketHelpers.h"
+
 // DON'T TOUCH THESE SETTINGS
 #define SERVER "137.112.38.47"
 #define PORT 2526
@@ -21,8 +22,6 @@
 // DUPLICATE SETTINGS TO DO NOT TOUCH
 static const char *SERVERSTR = "137.112.38.47";
 static const char *PORTSTR = "2526";
-
-
 
 // RHP Packet Settings (touchable)
 static const int DEFAULT_NUM_OCTETS = 9;
