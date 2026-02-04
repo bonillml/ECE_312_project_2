@@ -1,5 +1,5 @@
 // UDPClient.c
-//  gcc UDPClient.c -o udpclient
+//  gcc UDPClient.c SocketHelpers.c -o udpclient
 //  ./udpclient
 /************* UDP CLIENT CODE *******************/
 

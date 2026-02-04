@@ -41,7 +41,6 @@ char msg_in_buffer[MESSAGE_SIZE];
 // Method signatures
 struct RHP *createRHPPacket(char msg[], uint8_t type);
 void computeChecksum16(struct RHP *packet);
-void sendtoWithFailover(int socketfd, char *msg, size_t msglen, int flags, struct addrinfo *serverInfoList);
 
 struct RHPHeader
 {
