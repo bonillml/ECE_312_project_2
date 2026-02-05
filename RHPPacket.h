@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <arpa/inet.h>
 
 // RHP Packet Settings (touchable)
 #define DEFAULT_NUM_OCTETS 9
@@ -75,4 +77,4 @@ struct RHP *createRHPPacket(char msg[], uint8_t type);
 void appendChecksum(struct RHP *packet);
 uint16_t calculateChecksum(char *msg, ssize_t length);
 int createRHPPacketFromArray(char *msg, uint8_t type, char packetOutBuffer[], uint16_t lengthOfMsg, struct RHPHeader *header);
-
+void printRHPPacket(const char *packetBuffer, bool isNetworkOrder);

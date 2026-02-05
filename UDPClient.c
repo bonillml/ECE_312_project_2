@@ -44,7 +44,7 @@ int main()
         perror("packet assembly failed");
         return 0;
     }
-    printf("> Total packet octet: %d\n", sizeToSend);
+    printRHPPacket(packetOutBuffer, true);
 
     /* send a message to the server */
     // sendtoWithFailover(clientSocketfd, msg_out_buffer, strlen(msg_out_buffer), 0, serverAddrList);

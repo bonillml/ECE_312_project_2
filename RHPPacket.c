@@ -5,16 +5,17 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
 {
 
     header->version = RHP_VERSION;
-    header->srcPort = RHP_SOURCE_PORT;
+    printf("> RHP Version: %d\n", header->version);
+    header->srcPort = htons(RHP_SOURCE_PORT);
 
     type &= 0x0F; // Ensure type is 4 bits
     switch (type)
     {
     case RHP_TYPE_CTRL_MSG:
-        header->destPort = RHP_PORT_CTRL_MSG;
+        header->destPort = htons(RHP_PORT_CTRL_MSG);
         break;
     case RHP_TYPE_RHMP_MSG:
-        header->destPort = RHP_PORT_RHMP_MSG;
+        header->destPort = htons(RHP_PORT_RHMP_MSG);
         break;
     default:
         return -1; // Invalid type
@@ -28,6 +29,7 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
     }
 
     header->length_and_type = ((0x0FFF & lengthOfMsg) << 4) | (type & 0x0F);
+    header->length_and_type = htons(header->length_and_type);
 
     size_t oddOffset = (lengthOfMsg + 1) % 2; // offset is 1 if payload is even, 0 if odd, to ensure even total octet count
     memcpy(packetOutBuffer, header, sizeof(struct RHPHeader));
@@ -35,6 +37,7 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
     memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset, msg, lengthOfMsg);
 
     uint16_t checkSum = calculateChecksum(packetOutBuffer, sizeof(struct RHPHeader) + oddOffset + lengthOfMsg);
+    uint16_t checkSumNetworkOrder = htons(checkSum);
 
     // Append checksum to packet buffer
     memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset + lengthOfMsg, &checkSum, sizeof(checkSum));
@@ -132,4 +135,62 @@ uint16_t calculateChecksum(char *msg, ssize_t length)
         sum = (sum & 0xFFFF) + (sum >> 16); // handle carry
     }
     return (uint16_t)(~sum & 0xFFFF); // One's complement
+}
+
+
+void printRHPPacket(const char *packetBuffer, bool isNetworkOrder)
+{
+    const uint8_t *rawPacket = (const uint8_t *)packetBuffer;
+    struct RHPHeader packetHeader;
+    memcpy(&packetHeader, rawPacket, sizeof(struct RHPHeader));
+
+    uint16_t payloadLengthValue;
+    uint8_t packetType;
+
+    if(isNetworkOrder)
+    {
+        payloadLengthValue = (ntohs(packetHeader.length_and_type) >> 4) & 0x0FFF;
+        packetType = ntohs(packetHeader.length_and_type) & 0x000F;
+        // Convert fields from network to Host byte order
+        packetHeader.srcPort = ntohs(packetHeader.srcPort);
+        packetHeader.destPort = ntohs(packetHeader.destPort);
+        packetHeader.length_and_type = ntohs(packetHeader.length_and_type);
+        
+    }
+    else //its in host order
+    {
+        payloadLengthValue = (packetHeader.length_and_type >> 4) & 0x0FFF;
+        packetType = packetHeader.length_and_type & 0x000F;
+    }
+
+    
+
+    printf("RHP Packet:\n");
+    printf("Byte order: %s\n", isNetworkOrder ? "Network Order" : "Host Order");
+    
+    printf(" Version: %d\n", packetHeader.version);
+    printf("  Value : %u\n", packetHeader.version);
+    printf("  Raw   : %02X\n", rawPacket[0]);
+
+    printf(" Source Port: %d\n", packetHeader.srcPort);
+    printf("  Value : %u\n", packetHeader.srcPort);
+    printf("  Raw   : %02X %02X\n", rawPacket[1], rawPacket[2]);
+
+    printf(" Destination Port: %d\n", packetHeader.destPort);
+    printf("  Value : %u\n", packetHeader.destPort);
+    printf("  Raw   : %02X %02X\n", rawPacket[3], rawPacket[4]);
+
+    printf(" Length and Type: %d\n", packetHeader.length_and_type);
+    printf("  Value (combined): %u\n", packetHeader.length_and_type);
+    printf("  Raw             : %02X %02X\n", rawPacket[5], rawPacket[6]);
+    printf("  Decoded Length  : %u bytes\n", payloadLengthValue);
+    printf("  Decoded Type    : %u (", packetType);
+    switch (packetType) {
+        case RHP_TYPE_CTRL_MSG: printf("Control Message"); break;
+        case RHP_TYPE_RHMP_MSG: printf("RHMP Message"); break;
+        default:                printf("Unknown"); break;
+    }
+    printf(")\n");
+
+
 }
