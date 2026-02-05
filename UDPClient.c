@@ -46,15 +46,37 @@ int main()
     }
     printRHPPacket(packetOutBuffer, true);
 
-    /* send a message to the server */
-    // sendtoWithFailover(clientSocketfd, msg_out_buffer, strlen(msg_out_buffer), 0, serverAddrList);
-    sendtoWithFailover(clientSocketfd, packetOutBuffer, sizeToSend, 0, serverAddrList);
+    struct pollfd fds;
+    fds.fd = clientSocketfd;
+    fds.events = POLLIN;
+    for (int numTriesSinceResponse = 0; numTriesSinceResponse < NUM_RETRIES; numTriesSinceResponse++)
+    {
+        /* send a message to the server */
+        // sendtoWithFailover(clientSocketfd, msg_out_buffer, strlen(msg_out_buffer), 0, serverAddrList);
+        sendtoWithFailover(clientSocketfd, packetOutBuffer, sizeToSend, 0, serverAddrList);
 
-    /* Receive message from server */
-    nBytes = recvfrom(clientSocketfd, buffer, BUFSIZE, 0, NULL, NULL);
-
-    printf("> Received from server: %s\n", buffer);
-
+        int pollResult = poll(&fds, 1, TIMEOUT_MS); // wait up to 100ms for data
+        if (pollResult == 0)
+        {
+            printf("> No response from server within timeout period.\n");
+            continue;
+        }
+        else if (pollResult < 0)
+        {
+            perror("poll error");
+            close(clientSocketfd);
+            return 0;
+        }
+        else
+        {
+            // Data is available to read
+            /* Receive message from server */
+            nBytes = recvfrom(clientSocketfd, buffer, BUFSIZE, 0, NULL, NULL);
+            printf("> Received from server: %s\n", buffer);
+            break;
+        }
+    }
     close(clientSocketfd);
+
     return 0;
 }
