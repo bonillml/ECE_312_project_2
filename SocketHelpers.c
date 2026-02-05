@@ -46,8 +46,10 @@ int reserveClientPort(int protocolFamily, int socketType, int portFlags, int pro
         perror("failed to bind client socket");
         return 0;
     }
-}
 
+    return clientSocketfd;
+}
+//
 struct addrinfo *resolveServerAddr(int protocolFamily, int socketType, int portFlags, int protocol, char *serverStr, char *portStr)
 {
     struct addrinfo serverHints; // following example in manpage getaddrinfo(3)
@@ -70,6 +72,7 @@ struct addrinfo *resolveServerAddr(int protocolFamily, int socketType, int portF
     return serverAddrList;
 }
 
+// tries to send msg to each address in serverInfoList until one succeeds
 void sendtoWithFailover(int socketfd, char *msg, size_t msglen, int flags, struct addrinfo *serverInfoList)
 {
 
