@@ -6,16 +6,16 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
 
     header->version = RHP_VERSION;
     printf("> RHP Version: %d\n", header->version);
-    header->srcPort = htons(RHP_SOURCE_PORT);
+    header->srcPort = RHP_SOURCE_PORT;
 
     type &= 0x0F; // Ensure type is 4 bits
     switch (type)
     {
     case RHP_TYPE_CTRL_MSG:
-        header->destPort = htons(RHP_PORT_CTRL_MSG);
+        header->destPort = RHP_PORT_CTRL_MSG;
         break;
     case RHP_TYPE_RHMP_MSG:
-        header->destPort = htons(RHP_PORT_RHMP_MSG);
+        header->destPort = RHP_PORT_RHMP_MSG;
         break;
     default:
         return -1; // Invalid type
@@ -29,7 +29,6 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
     }
 
     header->length_and_type = ((0x0FFF & lengthOfMsg) << 4) | (type & 0x0F);
-    header->length_and_type = htons(header->length_and_type);
 
     size_t oddOffset = (lengthOfMsg + 1) % 2; // offset is 1 if payload is even, 0 if odd, to ensure even total octet count
     memcpy(packetOutBuffer, header, sizeof(struct RHPHeader));
@@ -37,10 +36,9 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
     memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset, msg, lengthOfMsg);
 
     uint16_t checkSum = calculateChecksum(packetOutBuffer, sizeof(struct RHPHeader) + oddOffset + lengthOfMsg);
-    uint16_t checkSumNetworkOrder = htons(checkSum);
 
     // Append checksum to packet buffer
-    memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset + lengthOfMsg, &checkSumNetworkOrder, sizeof(checkSumNetworkOrder));
+    memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset + lengthOfMsg, &checkSum, sizeof(checkSum));
 
     return sizeof(struct RHPHeader) + oddOffset + lengthOfMsg + sizeof(checkSum);
 }

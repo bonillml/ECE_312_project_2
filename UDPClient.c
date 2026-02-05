@@ -44,7 +44,7 @@ int main()
         perror("packet assembly failed");
         return 0;
     }
-    printRHPPacket(packetOutBuffer, true);
+    printRHPPacket(packetOutBuffer, false);
 
     struct pollfd fds;
     fds.fd = clientSocketfd;
@@ -58,7 +58,7 @@ int main()
         int pollResult = poll(&fds, 1, TIMEOUT_MS); // wait up to 100ms for data
         if (pollResult == 0)
         {
-            printf("> No response from server within timeout period.\n");
+            printf("> No response from server within timeout period. (Attempts since last response: %d)\n", numTriesSinceResponse + 1);
             continue;
         }
         else if (pollResult < 0)
