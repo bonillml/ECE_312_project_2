@@ -72,6 +72,14 @@ int main()
             // Data is available to read
             /* Receive message from server */
             nBytes = recvfrom(clientSocketfd, buffer, BUFSIZE, 0, NULL, NULL);
+            //probably should just have a struct for the header instead of a normal buffer, and then blocking recvfrom until we get the full header + payload + checksum
+            
+            if (nBytes < 0)
+            {
+                perror("Error receiving data from server");
+                close(clientSocketfd);
+                return 0;
+            }
             printf("> Received from server: %s\n", buffer);
             break;
         }
