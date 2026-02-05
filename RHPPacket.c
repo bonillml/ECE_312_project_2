@@ -1,5 +1,3 @@
-
-
 #include "RHPPacket.h"
 
 // Assembles an RHP packet into the provided buffer, including checksum

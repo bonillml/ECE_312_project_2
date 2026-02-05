@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 // RHP Packet Settings (touchable)
 #define DEFAULT_NUM_OCTETS 9
