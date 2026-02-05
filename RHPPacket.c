@@ -40,7 +40,7 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
     uint16_t checkSumNetworkOrder = htons(checkSum);
 
     // Append checksum to packet buffer
-    memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset + lengthOfMsg, &checkSum, sizeof(checkSum));
+    memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset + lengthOfMsg, &checkSumNetworkOrder, sizeof(checkSumNetworkOrder));
 
     return sizeof(struct RHPHeader) + oddOffset + lengthOfMsg + sizeof(checkSum);
 }
