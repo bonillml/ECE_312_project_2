@@ -1,21 +1,21 @@
 #include "RHPPacket.h"
 
 // Assembles an RHP packet into the provided buffer, including checksum
-int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uint16_t lengthOfMsg, struct RHPHeader *header)
+int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uint16_t lengthOfMsg)
 {
-
-    header->version = RHP_VERSION;
-    printf("> RHP Version: %d\n", header->version);
-    header->srcPort = RHP_SOURCE_PORT;
+    struct RHPHeader header;   
+    header.version = RHP_VERSION;
+    printf("> RHP Version: %d\n", header.version);
+    header.srcPort = RHP_SOURCE_PORT;
 
     type &= 0x0F; // Ensure type is 4 bits
     switch (type)
     {
     case RHP_TYPE_CTRL_MSG:
-        header->destPort = RHP_PORT_CTRL_MSG;
+        header.destPort = RHP_PORT_CTRL_MSG;
         break;
     case RHP_TYPE_RHMP_MSG:
-        header->destPort = RHP_PORT_RHMP_MSG;
+        header.destPort = RHP_PORT_RHMP_MSG;
         break;
     default:
         return -1; // Invalid type
@@ -28,10 +28,10 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
         return -1; // Invalid length
     }
 
-    header->length_and_type = ((0x0FFF & lengthOfMsg) << 4) | (type & 0x0F);
+    header.length_and_type = ((0x0FFF & lengthOfMsg) << 4) | (type & 0x0F);
 
     size_t oddOffset = (lengthOfMsg + 1) % 2; // offset is 1 if payload is even, 0 if odd, to ensure even total octet count
-    memcpy(packetOutBuffer, header, sizeof(struct RHPHeader));
+    memcpy(packetOutBuffer, &header, sizeof(struct RHPHeader));
     memset(packetOutBuffer + sizeof(struct RHPHeader), 0, oddOffset); // Clear buffer area if needed
     memcpy(packetOutBuffer + sizeof(struct RHPHeader) + oddOffset, msg, lengthOfMsg);
 

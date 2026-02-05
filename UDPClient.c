@@ -1,5 +1,5 @@
 // UDPClient.c
-//  gcc UDPClient.c SocketHelpers.c -o udpclient
+//  gcc UDPClient.c SocketHelpers.c RHPPacket.c -o udpclient
 //  ./udpclient
 /************* UDP CLIENT CODE *******************/
 
@@ -35,10 +35,9 @@ int main()
     printf("> Sending %s\n", msg_out_buffer);
 
     // Create and populate the RHP packet struct.
-    struct RHPHeader header;
     char packetOutBuffer[RHP_MESSAGE_SIZE];
     memset(packetOutBuffer, 0, sizeof(packetOutBuffer));
-    int sizeToSend = createRHPPacketFromArray(msg_out_buffer, 0, packetOutBuffer, lengthOfMsgOut, &header);
+    int sizeToSend = createRHPPacketFromArray(msg_out_buffer, 0, packetOutBuffer, lengthOfMsgOut);
     if (sizeToSend < 0)
     {
         perror("packet assembly failed");
@@ -55,7 +54,7 @@ int main()
         // sendtoWithFailover(clientSocketfd, msg_out_buffer, strlen(msg_out_buffer), 0, serverAddrList);
         sendtoWithFailover(clientSocketfd, packetOutBuffer, sizeToSend, 0, serverAddrList);
 
-        int pollResult = poll(&fds, 1, TIMEOUT_MS); // wait up to 100ms for data
+        int pollResult = poll(&fds, 1, TIMEOUT_MS);\
         if (pollResult == 0)
         {
             printf("> No response from server within timeout period. (Attempts since last response: %d)\n", numTriesSinceResponse + 1);
@@ -73,7 +72,7 @@ int main()
             /* Receive message from server */
             nBytes = recvfrom(clientSocketfd, buffer, BUFSIZE, 0, NULL, NULL);
             //probably should just have a struct for the header instead of a normal buffer, and then blocking recvfrom until we get the full header + payload + checksum
-            
+
             if (nBytes < 0)
             {
                 perror("Error receiving data from server");

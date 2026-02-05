@@ -76,5 +76,5 @@ struct RHP
 struct RHP *createRHPPacket(char msg[], uint8_t type);
 void appendChecksum(struct RHP *packet);
 uint16_t calculateChecksum(char *msg, ssize_t length);
-int createRHPPacketFromArray(char *msg, uint8_t type, char packetOutBuffer[], uint16_t lengthOfMsg, struct RHPHeader *header);
+int createRHPPacketFromArray(char *msg, uint8_t type, char packetOutBuffer[], uint16_t lengthOfMsg);
 void printRHPPacket(const char *packetBuffer, bool isNetworkOrder);
