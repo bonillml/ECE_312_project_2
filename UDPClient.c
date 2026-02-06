@@ -26,7 +26,7 @@ int main()
     struct addrinfo *serverAddrList = resolveServerAddr(AF_INET, SOCK_DGRAM, 0, IPPROTO_UDP, (char *)SERVERSTR, (char *)PORTSTR);
 
     // Prompt the user for a message.
-    printf("> Enter the message you'd like to send: \n> ");
+    printf("> Enter the message you'd like to send: ");
     memset(msg_out_buffer, 0, sizeof(msg_out_buffer));
     fgets(msg_out_buffer, RHP_MAX_PAYLOAD_LENGTH - 1, stdin); // read up to 4094 characters from stdin (leave space for padding and null terminator)
     int lengthOfMsgOut = strcspn(msg_out_buffer, "\r\n");
@@ -43,9 +43,13 @@ int main()
         perror("packet assembly failed");
         return 0;
     }
-    printRHPPacketInfo(packetOutBuffer);
+    if(printRHPPacketInfo(packetOutBuffer, sizeToSend) < 0){
+        close(clientSocketfd);
+        return -1;
+    }
 
     char packetInBuffer[RHP_MAX_MESSAGE_SIZE];
+    struct RHPHeader *receivedPacketHeader = (struct RHPHeader *)packetInBuffer;
     memset(packetInBuffer, 0, sizeof(packetInBuffer));
     int nBytesReceived = sendPacketGetAck(clientSocketfd, serverAddrList, packetOutBuffer, sizeToSend, packetInBuffer, sizeof(packetInBuffer), SEND_TIMEOUT_MS, SEND_NUM_RETRIES);
     if (nBytesReceived < 0)
@@ -54,8 +58,24 @@ int main()
         close(clientSocketfd);
         return -1;
     }
-    printRHPPacketInfo(packetInBuffer);
+    printf("\nReceived Response from Server:\n");
+
+    if(printRHPPacketInfo(packetInBuffer, nBytesReceived) < 0){
+        close(clientSocketfd);
+        return -1;
+    }
     
+    bool isNullTerminated = isPacketPayloadNullTerminated(packetInBuffer, nBytesReceived);
+    if(isNullTerminated < 0){
+        close(clientSocketfd);
+        return -1;
+    }
+    
+    if(printRHPPacketPayload(packetInBuffer, isNullTerminated, nBytesReceived) < 0){
+        close(clientSocketfd);
+        return -1;
+    }
+
     close(clientSocketfd);
 
     return 0;

@@ -13,7 +13,6 @@
 #include <sys/types.h>
 #include <poll.h>
 
-
 #include "SocketHelpers.h"
 #include "RHPPacket.h"
 
@@ -34,6 +33,5 @@ extern char msg_in_buffer[RHP_MAX_MESSAGE_SIZE];
 
 // Useful macros
 #define OCTET_COUNT(bits) ((bits / 8) + 1)
-
 
 // End of UDPClient.h

@@ -1,6 +1,5 @@
 #include "SocketHelpers.h"
 
-
 // returns socket file descriptor bound to a free port
 int reserveClientPort(int protocolFamily, int socketType, int portFlags, int protocol)
 {
