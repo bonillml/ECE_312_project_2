@@ -11,7 +11,7 @@ int main()
     int nBytes;
     char buffer[BUFSIZE];
     char msg_out_buffer[RHP_OFFSET_SIZE + RHP_MAX_PAYLOAD_LENGTH];
-    char msg_in_buffer[RHP_MESSAGE_SIZE];
+    char msg_in_buffer[RHP_MAX_MESSAGE_SIZE];
     // struct sockaddr_in clientAddr, serverAddr;
 
     // reserve a UDP port for the client, and get its socket file descriptor
@@ -35,7 +35,7 @@ int main()
     printf("> Sending %s\n", msg_out_buffer);
 
     // Create and populate the RHP packet struct.
-    char packetOutBuffer[RHP_MESSAGE_SIZE];
+    char packetOutBuffer[RHP_MAX_MESSAGE_SIZE];
     memset(packetOutBuffer, 0, sizeof(packetOutBuffer));
     int sizeToSend = createRHPPacketFromArray(msg_out_buffer, 0, packetOutBuffer, lengthOfMsgOut);
     if (sizeToSend < 0)
@@ -43,46 +43,19 @@ int main()
         perror("packet assembly failed");
         return 0;
     }
-    printRHPPacket(packetOutBuffer, false);
+    printRHPPacketInfo(packetOutBuffer);
 
-    struct pollfd fds;
-    fds.fd = clientSocketfd;
-    fds.events = POLLIN;
-    for (int numTriesSinceResponse = 0; numTriesSinceResponse < NUM_RETRIES; numTriesSinceResponse++)
+    char packetInBuffer[RHP_MAX_MESSAGE_SIZE];
+    memset(packetInBuffer, 0, sizeof(packetInBuffer));
+    int nBytesReceived = sendPacketGetAck(clientSocketfd, serverAddrList, packetOutBuffer, sizeToSend, packetInBuffer, sizeof(packetInBuffer), SEND_TIMEOUT_MS, SEND_NUM_RETRIES);
+    if (nBytesReceived < 0)
     {
-        /* send a message to the server */
-        // sendtoWithFailover(clientSocketfd, msg_out_buffer, strlen(msg_out_buffer), 0, serverAddrList);
-        sendtoWithFailover(clientSocketfd, packetOutBuffer, sizeToSend, 0, serverAddrList);
-
-        int pollResult = poll(&fds, 1, TIMEOUT_MS);\
-        if (pollResult == 0)
-        {
-            printf("> No response from server within timeout period. (Attempts since last response: %d)\n", numTriesSinceResponse + 1);
-            continue;
-        }
-        else if (pollResult < 0)
-        {
-            perror("poll error");
-            close(clientSocketfd);
-            return 0;
-        }
-        else
-        {
-            // Data is available to read
-            /* Receive message from server */
-            nBytes = recvfrom(clientSocketfd, buffer, BUFSIZE, 0, NULL, NULL);
-            //probably should just have a struct for the header instead of a normal buffer, and then blocking recvfrom until we get the full header + payload + checksum
-
-            if (nBytes < 0)
-            {
-                perror("Error receiving data from server");
-                close(clientSocketfd);
-                return 0;
-            }
-            printf("> Received from server: %s\n", buffer);
-            break;
-        }
+        fprintf(stderr, "Error receiving ACK from server\n");
+        close(clientSocketfd);
+        return -1;
     }
+    printRHPPacketInfo(packetInBuffer);
+    
     close(clientSocketfd);
 
     return 0;

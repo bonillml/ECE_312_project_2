@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <arpa/inet.h>
+#include <poll.h>
+
+#include "SocketHelpers.h"
 
 // RHP Packet Settings (touchable)
 #define DEFAULT_NUM_OCTETS 9
@@ -70,11 +73,15 @@ struct RHP
 #define RHP_OFFSET_SIZE (sizeof(uint8_t))
 #define RHP_MAX_PAYLOAD_LENGTH 4095  //defined in spec
 #define RHP_CHECKSUM_LENGTH (sizeof(uint16_t))
-#define RHP_MESSAGE_SIZE (RHP_HEADER_SIZE + RHP_OFFSET_SIZE + RHP_MAX_PAYLOAD_LENGTH + RHP_CHECKSUM_LENGTH)
+#define RHP_MAX_MESSAGE_SIZE (RHP_HEADER_SIZE + RHP_OFFSET_SIZE + RHP_MAX_PAYLOAD_LENGTH + RHP_CHECKSUM_LENGTH)
+#define RHP_MIN_MESSAGE_SIZE (RHP_HEADER_SIZE + sizeof(uint8_t) + RHP_CHECKSUM_LENGTH) // minimum size with 0 byte payload and 1 byte buffer
 
 // Method signatures
 struct RHP *createRHPPacket(char msg[], uint8_t type);
 void appendChecksum(struct RHP *packet);
 uint16_t calculateChecksum(char *msg, ssize_t length);
 int createRHPPacketFromArray(char *msg, uint8_t type, char packetOutBuffer[], uint16_t lengthOfMsg);
-void printRHPPacket(const char *packetBuffer, bool isNetworkOrder);
+void printRHPPacketInfo(const char *packetBuffer);
+int sendPacketGetAck(int socketfd, struct addrinfo *serverAddr, char *packetOutBuffer, size_t packetSize, char *packetInBuffer, size_t maxPacketInSize, int timeoutMs, int maxRetries);
+
+void checkSumTester(void);
