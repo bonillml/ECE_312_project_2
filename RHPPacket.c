@@ -267,22 +267,6 @@ int sendPacketGetAck(int socketfd, struct addrinfo *serverAddr, char *packetOutB
                 return -1;
             }
 
-            printRHPPacketInfo(packetInBuffer);
-
-
-            // if (nBytesReceived < totalExpectedSize)
-            // {
-            //     // Need to read the rest of the packet
-            //     int bytesLeftToRead = totalExpectedSize - nBytesReceived;
-            //     printf("> Reading remaining %d bytes of packet...\n", bytesLeftToRead);
-            //     int additionalBytesReceived = read(socketfd, packetInBuffer + nBytesReceived, bytesLeftToRead);
-            //     if (additionalBytesReceived < 0)
-            //     {
-            //         perror("Error receiving remaining data from server");
-            //         return -1;
-            //     }
-            //     nBytesReceived += additionalBytesReceived;
-            // }
             break;
         }
     }
