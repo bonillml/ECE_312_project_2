@@ -32,7 +32,7 @@ int main()
     int lengthOfMsgOut = strcspn(msg_out_buffer, "\r\n");
     msg_out_buffer[lengthOfMsgOut] = 0; // null terminate the string
     lengthOfMsgOut += 1;                // account for null terminator in length
-    printf("> Sending %s\n", msg_out_buffer);
+    printf("> Sending: %s\n", msg_out_buffer);
 
     // Create and populate the RHP packet struct.
     char packetOutBuffer[RHP_MAX_MESSAGE_SIZE];
@@ -43,10 +43,11 @@ int main()
         perror("packet assembly failed");
         return 0;
     }
-    if(printRHPPacketInfo(packetOutBuffer, sizeToSend) < 0){
-        close(clientSocketfd);
-        return -1;
-    }
+    // Print the packet info for debugging.
+    // if(printRHPPacketInfo(packetOutBuffer, sizeToSend) < 0){
+    //     close(clientSocketfd);
+    //     return -1;
+    // }
 
     char packetInBuffer[RHP_MAX_MESSAGE_SIZE];
     struct RHPHeader *receivedPacketHeader = (struct RHPHeader *)packetInBuffer;

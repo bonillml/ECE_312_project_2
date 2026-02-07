@@ -81,7 +81,7 @@ struct RHP
 struct RHP *createRHPPacket(char msg[], uint8_t type);
 
 void appendChecksum(struct RHP *packet);
-uint16_t calculateChecksum(char *msg, ssize_t length);
+uint16_t calculateChecksum(const char *msg, ssize_t length);
 
 int createRHPPacketFromArray(char *msg, uint8_t type, char packetOutBuffer[], uint16_t lengthOfMsg);
 int sendPacketGetAck(int socketfd, struct addrinfo *serverAddr, char *packetOutBuffer, size_t packetSize, char *packetInBuffer, size_t maxPacketInSize, int timeoutMs, int maxRetries);

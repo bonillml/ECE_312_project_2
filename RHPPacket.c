@@ -5,7 +5,6 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
 {
     struct RHPHeader header;
     header.version = RHP_VERSION;
-    printf("> RHP Version: %d\n", header.version);
     header.srcPort = RHP_SOURCE_PORT;
 
     type &= 0x0F; // Ensure type is 4 bits
@@ -106,7 +105,7 @@ void appendChecksum(struct RHP *packet)
     sum += ((0xF0 & packet->srcPort)) | (0x0F & (packet->destPort));
 }
 
-uint16_t calculateChecksum(char *msg, ssize_t length)
+uint16_t calculateChecksum(const char *msg, ssize_t length)
 {
     uint32_t sum = 0x0000;
     if (length <= 0)
@@ -230,6 +229,13 @@ int printRHPPacketInfo(const char *packetBuffer, size_t packetSize)
 
     printf(" Checksum: 0x%02X %02X\n", rawPacket[packetSize - 2], rawPacket[packetSize - 1]);
     printf("    Checksum Passed: %s\n", (packetIntegrityCheckResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM) ? "Yes" : "No");
+    if(packetIntegrityCheckResult == PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
+    {
+        uint16_t calculatedChecksum = calculateChecksum(packetBuffer, packetSize - sizeof(uint16_t));
+        uint16_t receivedChecksum = *((uint16_t *)(packetBuffer + packetSize - sizeof(uint16_t)));
+        printf("    Calculated Checksum: 0x%04X\n", calculatedChecksum);
+        printf("    Received Checksum: 0x%04X\n", receivedChecksum);
+    }
     return 0;
 }
 
@@ -354,11 +360,20 @@ int sendPacketGetAck(int socketfd, struct addrinfo *serverAddr, char *packetOutB
             size_t totalExpectedSize = sizeof(struct RHPHeader) + evenOffset + lengthOfPayload + sizeof(uint16_t); // header + optional buffer + payload + checksum
 
             int checkResult = packetIntgrityCheck(packetInBuffer, nBytesReceived);
-            if (checkResult < 0)
+            if (checkResult < 0 && checkResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
             {
-                fprintf(stderr, "Received packet failed integrity check\n");
+                fprintf(stderr, "Received packet failed integrity check, retrying\n");
                 continue; // wait for next packet
             }
+            else if (checkResult == PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
+            {
+                printf("> Received RHP packet with failed checksum:\n");
+                printRHPPacketInfo(packetInBuffer, nBytesReceived);
+                printf("> Received packet failed checksum validation; retrying send\n");
+                // continue processing packet for debugging purposes, even though it failed checksum validation
+                continue;
+            }
+
 
             break;
         }
