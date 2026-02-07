@@ -74,6 +74,8 @@ struct RHP
 #define RHP_CHECKSUM_LENGTH (sizeof(uint16_t))
 #define RHP_MAX_MESSAGE_SIZE (RHP_HEADER_SIZE + RHP_OFFSET_SIZE + RHP_MAX_PAYLOAD_LENGTH + RHP_CHECKSUM_LENGTH)
 #define RHP_MIN_MESSAGE_SIZE (RHP_HEADER_SIZE + sizeof(uint8_t) + RHP_CHECKSUM_LENGTH) // minimum size with 0 byte payload and 1 byte buffer
+#define PACKET_INTEGRITY_CHECK_FAILED -1
+#define PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM -2
 
 // Method signatures
 struct RHP *createRHPPacket(char msg[], uint8_t type);

@@ -180,7 +180,8 @@ int isPacketPayloadNullTerminated(const char *packetBuffer, size_t packetSize)
 int printRHPPacketInfo(const char *packetBuffer, size_t packetSize)
 {
     
-    if(packetIntgrityCheck(packetBuffer, packetSize) < 0)
+    int packetIntegrityCheckResult = packetIntgrityCheck(packetBuffer, packetSize);
+    if(packetIntegrityCheckResult < 0 && packetIntegrityCheckResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
     {
         fprintf(stderr, "Cannot print packet info, packet failed integrity check\n");
         return -1;
@@ -228,6 +229,7 @@ int printRHPPacketInfo(const char *packetBuffer, size_t packetSize)
     printf(")\n");
 
     printf(" Checksum: 0x%02X %02X\n", rawPacket[packetSize - 2], rawPacket[packetSize - 1]);
+    printf("    Checksum Passed: %s\n", (packetIntegrityCheckResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM) ? "Yes" : "No");
     return 0;
 }
 
@@ -302,10 +304,7 @@ int packetIntgrityCheck(const char *packetBuffer, size_t packetSize)
 
     if (calculatedChecksum != receivedChecksum)
     {
-        fprintf(stderr, "Packet integrity check failed, invalid checksum\n");
-        fprintf(stderr, " Expected checksum: 0x%04X\n", calculatedChecksum);
-        fprintf(stderr, " Received checksum: 0x%04X\n", receivedChecksum);
-        return -1;
+        return PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM;
     }
 
     return 0; // Packet is valid

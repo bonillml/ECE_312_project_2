@@ -25,8 +25,8 @@
 static const char *SERVERSTR = "137.112.38.47";
 static const char *PORTSTR = "2526";
 
-static const char SEND_NUM_RETRIES = 5;
-static const int SEND_TIMEOUT_MS = 200; // milliseconds
+static const char SEND_NUM_RETRIES = 10;
+static const int SEND_TIMEOUT_MS = 500; // milliseconds
 
 extern char msg_out_buffer[RHP_OFFSET_SIZE + RHP_MAX_PAYLOAD_LENGTH];
 extern char msg_in_buffer[RHP_MAX_MESSAGE_SIZE];

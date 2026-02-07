@@ -52,7 +52,7 @@ int main()
     struct RHPHeader *receivedPacketHeader = (struct RHPHeader *)packetInBuffer;
     memset(packetInBuffer, 0, sizeof(packetInBuffer));
     int nBytesReceived = sendPacketGetAck(clientSocketfd, serverAddrList, packetOutBuffer, sizeToSend, packetInBuffer, sizeof(packetInBuffer), SEND_TIMEOUT_MS, SEND_NUM_RETRIES);
-    if (nBytesReceived < 0)
+    if (nBytesReceived <= 0)
     {
         fprintf(stderr, "Error receiving ACK from server\n");
         close(clientSocketfd);
