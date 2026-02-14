@@ -136,7 +136,7 @@ uint16_t calculateChecksum(const char *msg, ssize_t length)
     return (uint16_t)(~sum & 0xFFFF); // One's complement
 }
 
-void checkSumTester(void)
+void checkSumTester()
 {
     uint16_t testMsg[] = {0x4500, 0x0073, 0x0000, 0x4000, 0x4011, 0xc0a8, 0x0001, 0xc0a8, 0x00c7};
     uint16_t correctChecksum = 0xb861;
