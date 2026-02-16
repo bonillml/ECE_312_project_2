@@ -32,4 +32,6 @@ typedef struct RHMPFields{
 #define RHMP_MAX_MESSAGE_SIZE (RHMP_HEADER_SIZE + RHMP_MAX_PAYLOAD_LENGTH)
 #define RHMP_MIN_MESSAGE_SIZE (RHMP_HEADER_SIZE + RHMP_MIN_PAYLOAD_LENGTH)
 
-int createRHMPMessageFromArray(char *msg, uint8_t type, char *packetOutBuffer, uint16_t lengthOfMsg);
+int writeRHMPmsgToBuffer(struct RHMPFields *msg, char *msgOutBuffer, uint16_t bufferLength);
+int readRHMPMessageFromBuffer(char *msg, struct RHMPFields *fields, char *msgInBuffer, uint16_t lengthOfMsgInBuffer);
+

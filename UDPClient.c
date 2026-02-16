@@ -53,16 +53,22 @@ int main()
 
             // Construct RHMP message request.
             memset(msg_out_buffer, 0, sizeof(msg_out_buffer));
-            createRHMPMessageFromArray(msg_out_buffer, RMHMP_MSG_TYPE_MSG_REQUEST, msg_out_buffer, 0);
-            lengthOfMsgOut = 32;
+            struct RHMPFields msgFields = {
+                .commID = COMM_ID,
+                .type = RMHMP_MSG_TYPE_MSG_REQUEST,
+                .length = 0};
+            lengthOfMsgOut = writeRHMPmsgToBuffer(&msgFields, msg_out_buffer, sizeof(msg_out_buffer));
             printf("> Sending RHMP message request.\n");
         }
         else if (option == 3) {
 
             // Construct RHMP ID request.
             memset(msg_out_buffer, 0, sizeof(msg_out_buffer));
-            createRHMPMessageFromArray(msg_out_buffer, RMHMP_MSG_TYPE_ID_REQUEST, msg_out_buffer, 0);
-            lengthOfMsgOut = 32;
+            struct RHMPFields msgFields = {
+                .commID = COMM_ID,
+                .type = RMHMP_MSG_TYPE_ID_REQUEST,
+                .length = 0};
+            lengthOfMsgOut =writeRHMPmsgToBuffer(&msgFields, msg_out_buffer, sizeof(msg_out_buffer));
             printf("> Sending RHMP ID request.\n");
         }
 
