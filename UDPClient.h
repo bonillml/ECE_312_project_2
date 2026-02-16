@@ -15,6 +15,7 @@
 
 #include "SocketHelpers.h"
 #include "RHPPacket.h"
+#include "RHMP.h"
 
 // DON'T TOUCH THESE SETTINGS
 #define SERVER "137.112.38.47"
