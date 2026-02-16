@@ -43,68 +43,6 @@ int createRHPPacketFromArray(char *msg, uint8_t type, char *packetOutBuffer, uin
     return sizeof(struct RHPHeader) + oddOffset + lengthOfMsg + sizeof(checkSum);
 }
 
-struct RHP *createRHPPacket(char msg[], uint8_t type)
-{
-
-    struct RHP *packet = malloc(sizeof(struct RHP));
-
-    uint8_t totalOctetCount = DEFAULT_NUM_OCTETS;
-
-    // Assign the RHP version.
-    packet->version = RHP_VERSION;
-
-    // Assign the source port.
-    packet->srcPort = RHP_SOURCE_PORT;
-
-    // Check the type and length validity
-    uint16_t length = (sizeof(char) * (strlen(msg) + 1));
-    if ((!type || type == 4) && length < 4096)
-    {
-
-        // Valid length, so increment octet count.
-        totalOctetCount += length;
-
-        // Populate the length and type octets
-        packet->length_and_type = ((0x3 | type) << 3) | (0x0FFF & length);
-
-        // Assign the destination port.
-        if (type == 4)
-            packet->destPort = 0x0ECE;
-        else
-            packet->destPort = 0x1874;
-    }
-    else
-        return NULL;
-
-    // If there an odd number of octets, add buffer.
-    if ((totalOctetCount % 2))
-    {
-        packet->buffer = 1;
-        totalOctetCount++;
-    }
-
-    // Set total octet count
-    packet->totalOctetCount = totalOctetCount;
-    printf("> Total packet octet: %d\n", totalOctetCount);
-
-    // Compute the packet's checksum
-    // uint16_t checksum = computeChecksum16(packet);
-    appendChecksum(packet);
-    return packet;
-}
-
-void appendChecksum(struct RHP *packet)
-{
-
-    uint32_t sum = 0x0000;
-
-    // Add the version and lower half of source port
-    sum += ((0x0F & packet->srcPort) << 8) | (0x0F & (uint16_t)packet->version);
-
-    // Add the high half of source port and the lower half of destination port
-    sum += ((0xF0 & packet->srcPort)) | (0x0F & (packet->destPort));
-}
-
 uint16_t calculateChecksum(const char *msg, ssize_t length)
 {
     uint32_t sum = 0x0000;
@@ -150,7 +88,8 @@ void checkSumTester()
 
 int isPacketPayloadNullTerminated(const char *packetBuffer, size_t packetSize)
 {
-    if(packetIntgrityCheck(packetBuffer, packetSize) < 0){
+    if (packetIntgrityCheck(packetBuffer, packetSize) < 0)
+    {
         fprintf(stderr, "Cannot check payload null termination, packet failed integrity check\n");
         return -1;
     }
@@ -176,11 +115,29 @@ int isPacketPayloadNullTerminated(const char *packetBuffer, size_t packetSize)
     }
 }
 
+int parseRHPInfoFromBuffer(const char *packetBuffer, size_t packetSize, struct RHPFields *fields)
+{
+    if (packetIntgrityCheck(packetBuffer, packetSize) < 0)
+    {
+        fprintf(stderr, "Cannot parse RHP info from buffer, packet failed integrity check\n");
+        return -1;
+    }
+
+    const struct RHPHeader *packet = (const struct RHPHeader *)packetBuffer;
+    fields->version = packet->version;
+    fields->srcPort = packet->srcPort;
+    fields->destPort = packet->destPort;
+    fields->length = (packet->length_and_type) & 0x0FFF;
+    fields->type = (packet->length_and_type >> 12) & 0x0F;
+    fields->checkSum = *((uint16_t *)(packetBuffer + packetSize - sizeof(uint16_t)));
+    return 0;
+}
+
 int printRHPPacketInfo(const char *packetBuffer, size_t packetSize)
 {
-    
+
     int packetIntegrityCheckResult = packetIntgrityCheck(packetBuffer, packetSize);
-    if(packetIntegrityCheckResult < 0 && packetIntegrityCheckResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
+    if (packetIntegrityCheckResult < 0 && packetIntegrityCheckResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
     {
         fprintf(stderr, "Cannot print packet info, packet failed integrity check\n");
         return -1;
@@ -229,7 +186,7 @@ int printRHPPacketInfo(const char *packetBuffer, size_t packetSize)
 
     printf(" Checksum: 0x%02X %02X\n", rawPacket[packetSize - 2], rawPacket[packetSize - 1]);
     printf("    Checksum Passed: %s\n", (packetIntegrityCheckResult != PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM) ? "Yes" : "No");
-    if(packetIntegrityCheckResult == PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
+    if (packetIntegrityCheckResult == PACKET_INTEGRITY_CHECK_FAILED_CHECKSUM)
     {
         uint16_t calculatedChecksum = calculateChecksum(packetBuffer, packetSize - sizeof(uint16_t));
         uint16_t receivedChecksum = *((uint16_t *)(packetBuffer + packetSize - sizeof(uint16_t)));
@@ -241,7 +198,7 @@ int printRHPPacketInfo(const char *packetBuffer, size_t packetSize)
 
 int printRHPPacketPayload(const char *packetBuffer, bool asString, size_t packetSize)
 {
-    if(packetIntgrityCheck(packetBuffer, packetSize) < 0)
+    if (packetIntgrityCheck(packetBuffer, packetSize) < 0)
     {
         fprintf(stderr, "Cannot print packet payload, packet failed integrity check\n");
         return -1;
@@ -373,7 +330,6 @@ int sendPacketGetAck(int socketfd, struct addrinfo *serverAddr, char *packetOutB
                 // continue processing packet for debugging purposes, even though it failed checksum validation
                 continue;
             }
-
 
             break;
         }
