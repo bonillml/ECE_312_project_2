@@ -38,6 +38,7 @@ int main()
         if (option == 4) break;
 
         int lengthOfMsgOut;
+        int RHPtype;
         if (option == 1) {
 
             // Prompt the user for a message.
@@ -47,6 +48,7 @@ int main()
             lengthOfMsgOut = strcspn(msg_out_buffer, "\r\n");
             msg_out_buffer[lengthOfMsgOut] = 0; // null terminate the string
             lengthOfMsgOut += 1;                // account for null terminator in length
+            RHPtype = 0;
             printf("> Sending: %s\n", msg_out_buffer);
         }
         else if (option == 2) {
@@ -58,6 +60,7 @@ int main()
                 .type = RMHMP_MSG_TYPE_MSG_REQUEST,
                 .length = 0};
             lengthOfMsgOut = writeRHMPmsgToBuffer(&msgFields, msg_out_buffer, sizeof(msg_out_buffer));
+            RHPtype = 4;
             printf("> Sending RHMP message request.\n");
         }
         else if (option == 3) {
@@ -69,13 +72,14 @@ int main()
                 .type = RMHMP_MSG_TYPE_ID_REQUEST,
                 .length = 0};
             lengthOfMsgOut =writeRHMPmsgToBuffer(&msgFields, msg_out_buffer, sizeof(msg_out_buffer));
+            RHPtype = 4;
             printf("> Sending RHMP ID request.\n");
         }
 
         // Create and populate the RHP packet struct.
         char packetOutBuffer[RHP_MAX_MESSAGE_SIZE];
         memset(packetOutBuffer, 0, sizeof(packetOutBuffer));
-        int sizeToSend = createRHPPacketFromArray(msg_out_buffer, 0, packetOutBuffer, lengthOfMsgOut);
+        int sizeToSend = createRHPPacketFromArray(msg_out_buffer, RHPtype, packetOutBuffer, lengthOfMsgOut);
         if (sizeToSend < 0)
         {
             perror("packet assembly failed");
