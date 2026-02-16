@@ -32,7 +32,7 @@ int main()
         int option = 0;
         while (!option || option > 4)
         {
-            printf("\n> (1) RHP, (2) RHMP (Msg. Req.), (3) RHMP (ID Req.),or (4) EXIT: ");
+            printf("\n> (1) RHP, (2) RHMP (Msg. Req.), (3) RHMP (ID Req.), or (4) EXIT: ");
             memset(msg_out_buffer, 0, sizeof(msg_out_buffer));
             fgets(msg_out_buffer, 8, stdin); // Read in at most one byte of data (should be enough for an int.
             option = atoi(msg_out_buffer);
