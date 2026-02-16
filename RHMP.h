@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define BIT_OFFSET_COMM_ID 0
 #define COMM_ID_MASK 0x00003FFF
@@ -36,4 +37,5 @@ typedef struct RHMPFields{
 
 int writeRHMPmsgToBuffer(struct RHMPFields *msg, char *msgOutBuffer, uint16_t bufferLength);
 int readRHMPMessageFromBuffer(char *msg, struct RHMPFields *fields, char *msgInBuffer, uint16_t lengthOfMsgInBuffer);
+int printRHMPPacket(char *bufferIn, uint16_t lengthOfBufferIn);
 

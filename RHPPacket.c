@@ -130,6 +130,7 @@ int parseRHPInfoFromBuffer(const char *packetBuffer, size_t packetSize, struct R
     fields->length = (packet->length_and_type) & 0x0FFF;
     fields->type = (packet->length_and_type >> 12) & 0x0F;
     fields->checkSum = *((uint16_t *)(packetBuffer + packetSize - sizeof(uint16_t)));
+    fields->payloadOffset = sizeof(struct RHPHeader) + ((fields->length + 1) % 2); // payload offset is header size + odd byte if payload size is even  
     return 0;
 }
 

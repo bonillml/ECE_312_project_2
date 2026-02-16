@@ -44,6 +44,7 @@ struct RHPFields
     uint16_t length;
     uint8_t type;
     uint16_t checkSum;
+    uint16_t payloadOffset;     // offset from start of packet to start of payload, should be the same as packetHeaderSize if no buffer is used between header and payload, but this is calculated separately for convenience
 } ;
 
 

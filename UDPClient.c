@@ -125,6 +125,7 @@ int main()
         if (receivedPacketFields.type == RHP_TYPE_RHMP_MSG)
         {
             printf("Interpreting payload as RHMP message...\n");
+            printRHMPPacket(packetInBuffer + receivedPacketFields.payloadOffset, receivedPacketFields.length);
         }
         else
         {

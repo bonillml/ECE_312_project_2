@@ -80,3 +80,68 @@ int readRHMPMessageFromBuffer(char *msg, struct RHMPFields *fields, char *msgInB
 
     return fields->length;
 }
+
+
+int printRHMPPacket(char *bufferIn, uint16_t lengthOfBufferIn)
+{
+    struct RHMPFields fields;
+    int result = readRHMPMessageFromBuffer(bufferIn, &fields, bufferIn, lengthOfBufferIn);
+    if (result < 0)
+    {
+        return -1; // Failed to read message from buffer
+    }
+
+        if (fields.length < RHMP_MIN_PAYLOAD_LENGTH || fields.length > RHMP_MAX_PAYLOAD_LENGTH)
+    {
+        return -1; // Invalid length
+    }
+
+    printf("RHMP Packet:\n");
+    printf("  CommID: %u (0x%04X)\n", fields.commID, fields.commID);
+    printf("  Type: %u (0x%02X)\n", fields.type, fields.type);
+    printf("  Length: %u (0x%04X)\n", fields.length, fields.length);
+    switch (fields.type)
+    {    case RMHMP_MSG_TYPE_RESERVED:
+        printf("  Type Description: Reserved\n");
+        printf("  This type is reserved for control messages and should not contain any payload.\n");
+        break;
+    case RMHMP_MSG_TYPE_MSG_REQUEST:
+        printf("  Type Description: RHMP message request\n"); 
+        printf("  This type is used for sending a message request and should not contain any payload.\n");
+        break;
+    case RMHMP_MSG_TYPE_MSG_RESPONSE:
+        printf("  Type Description: RHMP message response\n");
+        //this type responds with an ascii string in the payload, so we can print that out
+        if (fields.length == 0) {
+            printf("  No payload for message response.\n");
+        } else {
+            char payload[RHMP_MAX_PAYLOAD_LENGTH + 1]; // +1 for null terminator
+            memcpy(payload, bufferIn + RHMP_HEADER_SIZE, fields.length);
+            payload[fields.length] = '\0'; // Null-terminate the string
+            printf("  Payload: %s\n", payload);
+        }
+        break;
+    case RMHMP_MSG_TYPE_ID_REQUEST:
+        printf("  Type Description: RHMP ID request\n");
+        printf("  This type is used for requesting an ID and should not contain any payload.\n");
+        break;
+    case RMHMP_MSG_TYPE_ID_RESPONSE:
+        printf("  Type Description: RHMP ID response\n");
+        //this type responds with a 32-bit ID in the payload, so we can print that out
+        if (fields.length != 4) {
+            printf("  Invalid payload length for ID response. Expected 4 bytes for the ID.\n");
+        } else {
+            uint32_t id;
+            memcpy(&id, bufferIn + RHMP_HEADER_SIZE, sizeof(uint32_t));
+            printf("  ID in Payload: %u (0x%08X)\n", id, id);        }
+        break;
+    default:
+        printf("  Type Description: Unknown\n");
+        break;
+    }
+
+
+
+
+    return 0;
+}
