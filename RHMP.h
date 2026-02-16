@@ -19,12 +19,14 @@
 
 #define COMM_ID 0x312
 
-typedef struct RHMPHeaderRaw { uint32_t commID_Type_and_Length;};
+typedef struct RHMPHeaderRaw {
+    uint32_t commID_Type_and_Length; // 14 bits for commID, 6 bits for type, 12 bits for length
+} __attribute__((packed)) RHMPHeaderRaw;
 typedef struct RHMPFields{
     uint16_t commID;
     uint8_t type;
     uint16_t length;
-};
+} RHMPFields;
 
 #define RHMP_HEADER_SIZE sizeof(struct RHMPHeaderRaw)
 #define RHMP_MAX_PAYLOAD_LENGTH 4095
