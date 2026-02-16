@@ -10,5 +10,21 @@
 #define BIT_OFFSET_LENGTH 20
 #define LENGTH_MASK 0xFFF00000
 #define BIT_OFFSET_LENGTH 20
+#define RMHMP_MSG_TYPE_RESERVED 0
+#define RMHMP_MSG_TYPE_MSG_REQUEST 4
+#define RMHMP_MSG_TYPE_MSG_RESPONSE 6
+#define RMHMP_MSG_TYPE_ID_REQUEST 16
+#define RMHMP_MSG_TYPE_ID_RESPONSE 24
+
+
+#define COMM_ID 0x312
 
 typedef struct RHMPHeader { uint32_t commID_Type_and_Length;};
+
+#define RHMP_HEADER_SIZE sizeof(struct RHMPHeader)
+#define RHMP_MAX_PAYLOAD_LENGTH 4095
+#define RHMP_MIN_PAYLOAD_LENGTH 0
+#define RHMP_MAX_MESSAGE_SIZE (RHMP_HEADER_SIZE + RHMP_MAX_PAYLOAD_LENGTH)
+#define RHMP_MIN_MESSAGE_SIZE (RHMP_HEADER_SIZE + RHMP_MIN_PAYLOAD_LENGTH)
+
+int createRHMPMessageFromArray(char *msg, uint8_t type, char *packetOutBuffer, uint16_t lengthOfMsg);
